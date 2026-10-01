@@ -1,33 +1,74 @@
+import mongoose from 'mongoose';
 import { Evaluation } from '../models/Evaluation.js';
 
 // GET /api/evaluations
-// TODO: implement per README.md section 2.
 export async function getAllEvaluations(req, res, next) {
   try {
-    // TODO
+    const evaluations = await Evaluation.find().sort({ createdAt: -1 }).lean();
+    res.json({ evaluations });
   } catch (err) { next(err); }
 }
 
 // GET /api/evaluations/:id
-// TODO: implement per README.md section 2.
 export async function getEvaluation(req, res, next) {
   try {
-    // TODO
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid evaluation ID' });
+    }
+    const evaluation = await Evaluation.findById(req.params.id).lean();
+    if (!evaluation) return res.status(404).json({ message: 'Evaluation not found' });
+    res.json({ evaluation });
   } catch (err) { next(err); }
 }
 
 // POST /api/evaluations
-// TODO: implement per README.md section 2.
 export async function createEvaluation(req, res, next) {
   try {
-    // TODO
-  } catch (err) { next(err); }
+    const evaluation = await Evaluation.create(req.body);
+    res.status(201).json({ evaluation });
+  } catch (err) {
+    if (err.name === 'ValidationError' || err.name === 'CastError') {
+      return res.status(400).json({ message: err.message });
+    }
+    if (err.code === 11000) {
+      return res.status(409).json({ message: 'Evaluation already exists for this seminar and user' });
+    }
+    next(err);
+  }
 }
 
 // GET /api/evaluations/summary?seminarCode=SM101
-// TODO: implement per README.md section 3.
 export async function getEvaluationSummary(req, res, next) {
   try {
-    // TODO
+    const { seminarCode } = req.query;
+    if (!seminarCode) {
+      return res.status(400).json({ message: 'seminarCode is required' });
+    }
+
+    const summary = await Evaluation.aggregate([
+      { $match: { seminarCode } },
+      {
+        $group: {
+          _id: null,
+          averageScore: { $avg: '$score' },
+          evaluationCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    if (summary.length === 0) {
+      return res.json({
+        seminarCode,
+        averageScore: 0,
+        evaluationCount: 0,
+      });
+    }
+
+    const { averageScore, evaluationCount } = summary[0];
+    res.json({
+      seminarCode,
+      averageScore,
+      evaluationCount,
+    });
   } catch (err) { next(err); }
 }

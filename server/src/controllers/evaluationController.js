@@ -1,33 +1,21 @@
-import { Evaluation } from '../models/Evaluation.js';
+import { Router } from 'express';
 
-// GET /api/evaluations
-// TODO: implement per README.md section 2.
-export async function getAllEvaluations(req, res, next) {
-  try {
-    // TODO
-  } catch (err) { next(err); }
-}
+import {
+  getAllEvaluations,
+  getEvaluation,
+  createEvaluation,
+  getEvaluationSummary
+} from '../controllers/evaluationController.js';
 
-// GET /api/evaluations/:id
-// TODO: implement per README.md section 2.
-export async function getEvaluation(req, res, next) {
-  try {
-    // TODO
-  } catch (err) { next(err); }
-}
+const router = Router();
 
-// POST /api/evaluations
-// TODO: implement per README.md section 2.
-export async function createEvaluation(req, res, next) {
-  try {
-    // TODO
-  } catch (err) { next(err); }
-}
+router.get('/', getAllEvaluations);
 
-// GET /api/evaluations/summary?seminarCode=SM101
-// TODO: implement per README.md section 3.
-export async function getEvaluationSummary(req, res, next) {
-  try {
-    // TODO
-  } catch (err) { next(err); }
-}
+router.post('/', createEvaluation);
+
+// IMPORTANT: summary must come before /:id
+router.get('/summary', getEvaluationSummary);
+
+router.get('/:id', getEvaluation);
+
+export default router;

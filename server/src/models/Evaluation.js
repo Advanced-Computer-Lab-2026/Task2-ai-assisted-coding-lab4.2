@@ -1,14 +1,30 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-// TODO: define the Evaluation schema per README.md section 1.
-
-const evaluationSchema = new mongoose.Schema(
-  {
-    // TODO
+const EvaluationSchema = new mongoose.Schema({
+  seminarCode: {
+    type: String,
+    required: true,
   },
-  { timestamps: true }
-);
+  score: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5,
+  },
+  comment: {
+    type: String,
+    required: false,
+  },
+  evaluatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false,
+  },
+}, {
+  timestamps: true
+});
 
-// TODO: add the compound uniqueness constraint described in README.md section 1.
+// Compound unique index to ensure a user can only evaluate a specific seminar once
+EvaluationSchema.index({ seminarCode: 1, evaluatedBy: 1 }, { unique: true });
 
-export const Evaluation = mongoose.model('Evaluation', evaluationSchema);
+module.exports = mongoose.model('Evaluation', EvaluationSchema);

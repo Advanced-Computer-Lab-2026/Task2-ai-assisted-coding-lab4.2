@@ -4,11 +4,15 @@ import mongoose from 'mongoose';
 
 const evaluationSchema = new mongoose.Schema(
   {
-    // TODO
+    seminarCode: { type: String, required: true },
+    score: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String },
+    evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
   { timestamps: true }
 );
 
-// TODO: add the compound uniqueness constraint described in README.md section 1.
+// Compound uniqueness constraint: a user can evaluate a seminar only once.
+evaluationSchema.index({ seminarCode: 1, evaluatedBy: 1 }, { unique: true });
 
 export const Evaluation = mongoose.model('Evaluation', evaluationSchema);

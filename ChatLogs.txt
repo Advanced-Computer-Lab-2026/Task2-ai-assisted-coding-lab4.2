@@ -1,0 +1,374 @@
+ ▐▛███▛█   Claude Code v2.1.284
+▝▜██████▀  gemma4:31b · API Usage Billing
+ ▝▝   ▝▝   ~\Desktop\ACL\Task2-ai-assisted-coding-lab4.2
+
+
+❯ Please set up the MongoDB database connection for this project.               
+                                                                                
+  First, create a new file at server/.env (I know it is git-ignored) and        
+  populate it with exactly this content:                                        
+  PORT=4000                                                                     
+  MONGO_URI=mongodb://tasks:pass1234@ac-j3acrgb-shard-00-00.lueesfz.mongodb.net 
+  :27017,ac-j3acrgb-shard                                                       
+                                                                                
+  Next, create a database connection utility file (e.g., server/db.js or        
+  server/config/db.js) that uses mongoose to connect to this MONGO_URI. Make    
+  sure it uses dotenv to load the variables and logs a success message when     
+  connected.                                                                    
+
+● Bash(mkdir -p server)
+  ⎿  Done
+
+● Write(server\.env)
+  ⎿  Wrote 2 lines to server\.env
+      1 PORT=4000
+      2 MONGO_URI=mongodb://tasks:pass1234@ac-j3acrgb-shard-00-00.lueesfz
+        .mongodb.net:27017,ac-j3acrgb-shard
+
+● Write(server\db.js)
+  ⎿  Wrote 14 lines to server\db.js
+       1 const mongoose = require('mongoose');
+       2 require('dotenv').config();
+       3 
+       4 const connectDB = async () => {
+       5   try {
+       6     const conn = await mongoose.connect(process.env.MONGO_URI);
+       7     console.log(`MongoDB Connected: ${conn.connection.host}`);
+       8   } catch (error) {
+       9     console.error(`Error: ${error.message}`);
+      10     process.exit(1);
+     … +4 lines (ctrl+o to expand)
+
+● I have successfully set up the MongoDB connection for the project:
+
+  1. Created server/.env with the specified PORT and MONGO_URI.
+  2. Created server/db.js, which:
+     - Loads environment variables using dotenv.
+     - Uses mongoose to connect to the MongoDB URI.
+     - Logs a success message upon connection or exits the process on failure.
+
+✻ Cooked for 5s · done 10:08 AM
+
+❯ I'm ready for the next task                                                   
+
+● I'm ready! Please let me know what the next task is, or if you have a set of
+  requirements/instructions for me to follow.
+
+✻ Sautéed for 1s · done 10:10 AM
+
+❯ Create a Mongoose model in server/src/models/Evaluation.js with the following 
+  schema requirements:                                                          
+                                                                                
+  Fields:                                                                       
+  - seminarCode: String, required                                               
+  - score: Number, required, min: 1, max: 5                                     
+  - comment: String, optional                                                   
+  - evaluatedBy: mongoose.Schema.Types.ObjectId referencing the 'User' model,   
+  optional                                                                      
+                                                                                
+  Additional Settings:                                                          
+  - Enable { timestamps: true }                                                 
+  - Add a compound unique index on { seminarCode: 1, evaluatedBy: 1 }           
+
+● Bash(mkdir -p server/src/models)
+  ⎿  Done
+
+● Write(server\src\models\Evaluation.js)
+  ⎿  Added 26 lines, removed 10 lines
+       1 -import mongoose from 'mongoose';                               
+       1 +const mongoose = require('mongoose');                          
+       2  
+       3 -// TODO: define the Evaluation schema per README.md section 1. 
+       4 -                                                               
+       5 -const evaluationSchema = new mongoose.Schema(                  
+       6 -  {                                                            
+       7 -    // TODO                                                    
+       3 +const EvaluationSchema = new mongoose.Schema({                 
+       4 +  seminarCode: {                                               
+       5 +    type: String,                                              
+       6 +    required: true,                                            
+       7    },
+       9 -  { timestamps: true }                                         
+      10 -);                                                             
+       8 +  score: {                                                     
+       9 +    type: Number,                                              
+      10 +    required: true,                                            
+      11 +    min: 1,                                                    
+      12 +    max: 5,                                                    
+      13 +  },                                                           
+      14 +  comment: {                                                   
+      15 +    type: String,                                              
+      16 +    required: false,                                           
+      17 +  },                                                           
+      18 +  evaluatedBy: {                                               
+      19 +    type: mongoose.Schema.Types.ObjectId,                      
+      20 +    ref: 'User',                                               
+      21 +    required: false,                                           
+      22 +  },                                                           
+      23 +}, {                                                           
+      24 +  timestamps: true                                             
+      25 +});                                                            
+      26  
+      12 -// TODO: add the compound uniqueness constraint described in RE
+         -ADME.md section 1.                                             
+      27 +// Compound unique index to ensure a user can only evaluate a s
+         +pecific seminar once                                           
+      28 +EvaluationSchema.index({ seminarCode: 1, evaluatedBy: 1 }, { un
+         +ique: true });                                                 
+      29  
+      14 -export const Evaluation = mongoose.model('Evaluation', evaluati
+         -onSchema);                                                     
+      30 +module.exports = mongoose.model('Evaluation', EvaluationSchema)
+         +;                                                              
+
+● I have created the Mongoose model in server/src/models/Evaluation.js with the
+  following specifications:
+
+  - Fields:
+    - seminarCode: String, required.
+    - score: Number, required, with a minimum value of 1 and a maximum of 5.
+    - comment: String, optional.
+    - evaluatedBy: ObjectId referencing the 'User' model, optional.
+  - Settings:
+    - timestamps: true enabled to automatically handle createdAt and updatedAt.
+    - Compound Unique Index: Added on { seminarCode: 1, evaluatedBy: 1 } to
+      prevent duplicate evaluations for the same seminar by the same user.
+
+✻ Churned for 2s · done 10:10 AM
+
+❯ Please implement the controller and routes for Evaluations.                   
+                                                                                
+  1. In server/src/controllers/evaluationController.js, import the Evaluation   
+  model and implement the following three functions:                            
+  - createEvaluation: Creates a new evaluation from the request body. On        
+  success, respond with status 201 and { evaluation: <document> }.              
+  - getAllEvaluations: Retrieves all evaluations. On success, respond with      
+  status 200 and { evaluations: [...] }.                                        
+  - getEvaluation: Retrieves a single evaluation by its req.params.id. If the   
+  id is valid but the evaluation does not exist, respond with status 404 and {  
+  message: 'Evaluation not found' }. On success, respond with status 200 and {  
+  evaluation: <document> }.                                                     
+  - For all three functions, ensure any unexpected errors are caught and passed 
+  to the Express error handler using next(err).                                 
+                                                                                
+  2. In server/src/routes/evaluations.js, set up an Express router and wire up  
+  the controller functions to the following paths:                              
+  - POST / -> createEvaluation                                                  
+  - GET / -> getAllEvaluations                                                  
+  - GET /:id -> getEvaluation                                                   
+                                                                                
+  Export the router so it can be mounted at /api/evaluations in the main server 
+  file.                                                                         
+
+● Bash(mkdir -p server/src/controllers server/src/routes)
+  ⎿  Done
+
+● Write(server\src\controllers\evaluationController.js)
+  ⎿  Added 25 lines, removed 27 lines
+       1 -import { Evaluation } from '../models/Evaluation.js';          
+       1 +const Evaluation = require('../models/Evaluation');            
+       2  
+       3 -// GET /api/evaluations                                        
+       4 -// TODO: implement per README.md section 2.                    
+       5 -export async function getAllEvaluations(req, res, next) {      
+       3 +exports.createEvaluation = async (req, res, next) => {         
+       4    try {
+       7 -    // TODO                                                    
+       8 -  } catch (err) { next(err); }                                 
+       9 -}                                                              
+       5 +    const evaluation = await Evaluation.create(req.body);      
+       6 +    res.status(201).json({ evaluation });                      
+       7 +  } catch (err) {                                              
+       8 +    next(err);                                                 
+       9 +  }                                                            
+      10 +};                                                             
+      11  
+      11 -// GET /api/evaluations/:id                                    
+      12 -// TODO: implement per README.md section 2.                    
+      13 -export async function getEvaluation(req, res, next) {          
+      12 +exports.getAllEvaluations = async (req, res, next) => {        
+      13    try {
+      15 -    // TODO                                                    
+      16 -  } catch (err) { next(err); }                                 
+      17 -}                                                              
+      14 +    const evaluations = await Evaluation.find({});             
+      15 +    res.status(200).json({ evaluations });                     
+      16 +  } catch (err) {                                              
+      17 +    next(err);                                                 
+      18 +  }                                                            
+      19 +};                                                             
+      20  
+      19 -// POST /api/evaluations                                       
+      20 -// TODO: implement per README.md section 2.                    
+      21 -export async function createEvaluation(req, res, next) {       
+      21 +exports.getEvaluation = async (req, res, next) => {            
+      22    try {
+      23 -    // TODO                                                    
+      24 -  } catch (err) { next(err); }                                 
+      25 -}                                                              
+      26 -                                                               
+      27 -// GET /api/evaluations/summary?seminarCode=SM101              
+      28 -// TODO: implement per README.md section 3.                    
+      29 -export async function getEvaluationSummary(req, res, next) {   
+      30 -  try {                                                        
+      31 -    // TODO                                                    
+      32 -  } catch (err) { next(err); }                                 
+      33 -}                                                              
+      23 +    const evaluation = await Evaluation.findById(req.params.id)
+         +;                                                              
+      24 +    if (!evaluation) {                                         
+      25 +      return res.status(404).json({ message: 'Evaluation not fo
+         +und' });                                                       
+      26 +    }                                                          
+      27 +    res.status(200).json({ evaluation });                      
+      28 +  } catch (err) {                                              
+      29 +    next(err);                                                 
+      30 +  }                                                            
+      31 +};                                                             
+
+● Write(server\src\routes\evaluations.js)
+  ⎿  Added 9 lines, removed 9 lines
+       1 -import { Router } from 'express';                              
+       2 -import {                                                       
+       1 +const express = require('express');                            
+       2 +const router = express.Router();                               
+       3 +const {                                                        
+       4 +  createEvaluation,                                            
+       5    getAllEvaluations,
+       6    getEvaluation,
+       5 -  createEvaluation,                                            
+       6 -  getEvaluationSummary                                         
+       7 -} from '../controllers/evaluationController.js';               
+       7 +} = require('../controllers/evaluationController');            
+       8  
+       9 -const router = Router();                                       
+       9 +router.post('/', createEvaluation);                            
+      10 +router.get('/', getAllEvaluations);                            
+      11 +router.get('/:id', getEvaluation);                             
+      12  
+      11 -// TODO: wire up the three routes in README.md section 2 and th
+         -e summary route in section 3.                                  
+      12 -                                                               
+      13 -export default router;                                         
+      13 +module.exports = router;                                       
+
+● I have implemented the controller and routes for Evaluations:
+
+  1. Controller (server/src/controllers/evaluationController.js):
+     - createEvaluation: Creates a new evaluation and returns it with
+       status 201.
+     - getAllEvaluations: Fetches all evaluations and returns them with
+       status 200.
+     - getEvaluation: Fetches a single evaluation by ID. Returns 404 if not
+       found, and 200 on success.
+     - All functions use try...catch blocks and pass errors to next(err) for
+       Express's central error handler.
+  2. Routes (server/src/routes/evaluations.js):
+     - POST / mapped to createEvaluation.
+     - GET / mapped to getAllEvaluations.
+     - GET /:id mapped to getEvaluation.
+     - The router is exported and ready to be mounted at /api/evaluations.
+
+✻ Brewed for 3s · done 10:11 AM
+
+❯ Please implement the summary endpoint for Evaluations.                        
+                                                                                
+  1. In server/src/controllers/evaluationController.js, add and export a new    
+  function named getEvaluationSummary:                                          
+  - Extract seminarCode from the query parameters (req.query.seminarCode).      
+  - If seminarCode is missing, respond with status 400 and { message:           
+  'seminarCode is required' }.                                                  
+  - Use Evaluation.aggregate() to calculate the statistics. You MUST use        
+  MongoDB aggregation ($match on seminarCode, then $group calculating the $avg  
+  of the score and $sum: 1 for the evaluation count). Do not use .find() or     
+  calculate the average in JavaScript.                                          
+  - If there are no matching evaluations for that code, respond with status 200 
+  and { "seminarCode": <requested_code>, "averageScore": 0, "evaluationCount":  
+  0 }.                                                                          
+  - On success, respond with status 200 and { "seminarCode": <requested_code>,  
+  "averageScore": <calculated_average>, "evaluationCount": <calculated_count>   
+  }.                                                                            
+  - Catch any unexpected errors and pass them to next(err).                     
+                                                                                
+  2. In server/src/routes/evaluations.js, import getEvaluationSummary and add   
+  the new route:                                                                
+  - Wire it to GET /summary.                                                    
+  - IMPORTANT: Place the GET /summary route declaration BEFORE the GET /:id     
+  route. Otherwise, Express will treat "summary" as an ID and route it to       
+  getEvaluation instead.                                                        
+
+● Update(server\src\controllers\evaluationController.js)
+  ⎿  Added 39 lines
+      29      next(err);
+      30    }
+      31  };
+      32 +                                                               
+      33 +exports.getEvaluationSummary = async (req, res, next) => {     
+      34 +  try {                                                        
+      35 +    const { seminarCode } = req.query;                         
+      36 +                                                               
+      37 +    if (!seminarCode) {                                        
+      38 +      return res.status(400).json({ message: 'seminarCode is re
+         +quired' });                                                    
+      39 +    }                                                          
+      40 +                                                               
+      41 +    const stats = await Evaluation.aggregate([                 
+      42 +      { $match: { seminarCode } },                             
+      43 +      {                                                        
+      44 +        $group: {                                              
+      45 +          _id: '$seminarCode',                                 
+      46 +          averageScore: { $avg: '$score' },                    
+      47 +          evaluationCount: { $sum: 1 },                        
+      48 +        },                                                     
+      49 +      },                                                       
+      50 +    ]);                                                        
+      51 +                                                               
+      52 +    if (stats.length === 0) {                                  
+      53 +      return res.status(200).json({                            
+      54 +        seminarCode,                                           
+      55 +        averageScore: 0,                                       
+      56 +        evaluationCount: 0,                                    
+      57 +      });                                                      
+      58 +    }                                                          
+      59 +                                                               
+      60 +    const { averageScore, evaluationCount } = stats[0];        
+      61 +    res.status(200).json({                                     
+      62 +      seminarCode,                                             
+      63 +      averageScore,                                            
+      64 +      evaluationCount,                                         
+      65 +    });                                                        
+      66 +  } catch (err) {                                              
+      67 +    next(err);                                                 
+      68 +  }                                                            
+      69 +};                                                             
+      70 +                                                               
+
+● Update(server\src\routes\evaluations.js)
+  ⎿  Added 2 lines
+       4    createEvaluation,
+       5    getAllEvaluations,
+       6    getEvaluation,
+       7 +  getEvaluationSummary,                                        
+       8  } = require('../controllers/evaluationController');
+       9  
+      10  router.post('/', createEvaluation);
+      11  router.get('/', getAllEvaluations);
+      12 +router.get('/summary', getEvaluationSummary);                  
+      13  router.get('/:id', getEvaluation);
+      14  
+      15  module.exports = router;
+
+● I have implemented the summary endpoint for Evaluations:
+
+  1. Controller (server/src/controllers/evaluationController.js):
+     - Added getEvaluationSummary which validates the seminarCode query
+       parameter.
+     - Implemented a MongoDB aggregation pipeline using $match and $group to
+       calculate the average score and total count.
+     - Handles cases where no evaluations are found by returning zeros.
+     - Integrates with the Express error handler via next(err).
+  2. Routes (server/src/routes/evaluations.js):
+     - Imported getEvaluationSummary.
+     - Added GET /summary route before GET /:id to ensure correct routing.
+
+✻ Cogitated for 4s · done 10:12 AM

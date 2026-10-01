@@ -5,7 +5,7 @@ const evaluationSchema = new mongoose.Schema(
     seminarCode: { type: String, required: true },
     score: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String },
-    evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );
